@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>8-Bit Valentine 💖</title>
+
+<style>
+body{
+  margin:0;
+  background:#111;
+  color:#fff;
+  font-family:Courier New, monospace;
+  overflow:hidden;
+  text-align:center;
+}
+
+/* scanline effect */
+body::after{
+  content:"";
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.05) 0px,
+    rgba(255,255,255,0.05) 2px,
+    transparent 2px,
+    transparent 4px
+  );
+  pointer-events:none;
+}
+
+.screen{
+  position:absolute;
+  width:100%;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+}
+
+.hidden{display:none}
+
+/* retro box */
+.box{
+  border:4px solid #ff2e88;
+  padding:20px;
+  background:#000;
+  width:80%;
+  max-width:400px;
+}
+
+/* buttons */
+button{
+  background:#ff2e88;
+  color:white;
+  border:none;
+  padding:10px 20px;
+  margin-top:15px;
+  font-family:inherit;
+  cursor:pointer;
+}
+button:hover{
+  background:#ff5ca8;
+}
+
+/* blinking text */
+.blink{
+  animation:blink 1s infinite;
+}
+@keyframes blink{
+  50%{opacity:0}
+}
+
+/* pixel character grid */
+.pixel{
+  width:16px;
+  height:16px;
+  float:left;
+}
+.sprite{
+  width:112px;
+  height:128px;
+  margin:20px auto;
+}
+
+/* colors */
+.skin{background:#ffd1b3;}
+.hair{background:#4a2f27;}
+.shirt{background:#3aa6ff;}
+.pants{background:#1f2a44;}
+.eye{background:#000;}
+.mouth{background:#ff0044;}
+
+/* hearts */
+.heart{
+  position:fixed;
+  top:-20px;
+  color:#ff2e88;
+  animation:fall linear forwards;
+}
+@keyframes fall{
+  to{
+    transform:translateY(110vh);
+    opacity:0;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<audio id="music" loop>
+  <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_2f6b99e1a0.mp3">
+</audio>
+
+<!-- START SCREEN -->
+<div id="startScreen" class="screen">
+  <h1>💖 8-BIT LOVE QUEST 💖</h1>
+  <p class="blink">PRESS START</p>
+  <button onclick="showNameScreen()">START</button>
+</div>
+
+<!-- NAME INPUT -->
+<div id="nameScreen" class="screen hidden">
+  <div class="box">
+    <h3>ENTER HER NAME</h3>
+    <input id="nameInput" style="padding:8px;text-align:center;">
+    <br>
+    <button onclick="startGame()">CONFIRM</button>
+  </div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="gameScreen" class="screen hidden">
+  <div id="sprite" class="sprite"></div>
+  <div class="box">
+    <p id="dialogue"></p>
+    <div id="choices">
+      <button onclick="yes()">YES</button>
+      <button onclick="no()">NO</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let name="";
+let noCount=0;
+const music=document.getElementById("music");
+
+/* sprite generator */
+function drawSprite(happy=true){
+  const sprite=document.getElementById("sprite");
+  sprite.innerHTML="";
+
+  const layout=[
+    "  hhh  ",
+    " hsssh ",
+    " heeseh ",
+    " hsmssh ",
+    "  ttt  ",
+    "  ttt  ",
+    "  ppp  ",
+    "  ppp  "
+  ];
+
+  for(let row of layout){
+    for(let c of row){
+      const px=document.createElement("div");
+      px.className="pixel";
+      if(c==="h") px.classList.add("hair");
+      if(c==="s") px.classList.add("skin");
+      if(c==="e") px.classList.add("eye");
+      if(c==="m") px.classList.add("mouth");
+      if(c==="t") px.classList.add("shirt");
+      if(c==="p") px.classList.add("pants");
+      sprite.appendChild(px);
+    }
+  }
+}
+
+/* navigation */
+function showNameScreen(){
+  document.getElementById("startScreen").classList.add("hidden");
+  document.getElementById("nameScreen").classList.remove("hidden");
+}
+
+function startGame(){
+  name=document.getElementById("nameInput").value||"My Love";
+  document.getElementById("nameScreen").classList.add("hidden");
+  document.getElementById("gameScreen").classList.remove("hidden");
+
+  document.getElementById("dialogue").innerText=
+    `Will you be my Valentine, ${name}?`;
+
+  drawSprite(true);
+  music.play().catch(()=>{});
+}
+
+function no(){
+  noCount++;
+  drawSprite(false);
+
+  const lines=[
+    "Error: Heart Damage 💔",
+    "Retrying Romance.exe...",
+    "Offering Flowers DLC 🌸",
+    "Activating Chocolate Mode 🍫",
+    "Please Press YES ❤️"
+  ];
+  document.getElementById("dialogue").innerText=
+    lines[Math.min(noCount-1,lines.length-1)];
+}
+
+function yes(){
+  drawSprite(true);
+  document.getElementById("dialogue").innerText=
+`MISSION COMPLETE 💖
+
+Thank you for being my Valentine, ${name}.
+You are my favorite notification,
+my best adventure,
+and my forever player two.
+
+Game Over?
+No…
+
+Level 1 of Forever Begins ❤️`;
+
+  document.getElementById("choices").innerHTML="";
+}
+
+/* falling hearts */
+function heart(){
+  const h=document.createElement("div");
+  h.className="heart";
+  h.innerText="❤";
+  h.style.left=Math.random()*100+"vw";
+  h.style.fontSize=(10+Math.random()*20)+"px";
+  h.style.animationDuration=(3+Math.random()*4)+"s";
+  document.body.appendChild(h);
+  setTimeout(()=>h.remove(),7000);
+}
+setInterval(heart,400);
+</script>
+
+</body>
+</html>
